@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<!-- Mobile / iPhone friendly -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PyBrowser">
+<meta name="theme-color" content="#0b0f1a">
+<title>PyBrowser</title>
+<style>
+  :root{
+    --bg:#0b0f1a; --panel:#151b2e; --panel2:#1d2540;
+    --text:#e7ecf5; --muted:#8a95b3; --accent:#5b8cff; --danger:#ff5b6e;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(120% 90% at 50% -10%, #16203c 0%, var(--bg) 55%);
+    color:var(--text);
+    font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:max(env(safe-area-inset-top),18px) 16px calc(env(safe-area-inset-bottom) + 16px);
+    display:flex;flex-direction:column;gap:18px;min-height:100%;
+  }
+  header{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px}
+  .logo{font-size:30px;font-weight:800;letter-spacing:.5px}
+  .logo span{color:var(--accent)}
+  .tag{color:var(--muted);font-size:13px}
+
+  form.search{position:relative;display:flex;gap:8px}
+  .search input{
+    flex:1;min-width:0;padding:16px 16px;border-radius:var(--radius);
+    border:1px solid #2a3355;background:var(--panel);color:var(--text);
+    font-size:17px;outline:none;
+  }
+  .search input:focus{border-color:var(--accent)}
+  .search button{
+    padding:0 18px;border:0;border-radius:var(--radius);
+    background:var(--accent);color:#fff;font-size:18px;font-weight:700;
+  }
+  .engine-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .chip{
+    padding:7px 14px;border-radius:999px;border:1px solid #2a3355;
+    background:var(--panel);color:var(--muted);font-size:13px;
+  }
+  .chip.active{background:var(--panel2);color:var(--text);border-color:var(--accent)}
+
+  .section-title{display:flex;align-items:center;justify-content:space-between;
+    color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:4px 2px}
+  .add{color:var(--accent);font-size:20px;font-weight:700;padding:2px 8px}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media (max-width:360px){.grid{grid-template-columns:repeat(3,1fr)}}
+  .tile{
+    position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:14px 6px;border-radius:var(--radius);background:var(--panel);
+    border:1px solid #222b48;text-decoration:none;color:var(--text);
+  }
+  .tile:active{background:var(--panel2)}
+  .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+    font-size:20px;font-weight:800;color:#fff}
+  .tile .name{font-size:12px;color:var(--muted);max-width:100%;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .tile .del{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;
+    background:var(--danger);color:#fff;font-size:14px;line-height:22px;text-align:center;
+    display:none}
+  body.editing .tile .del{display:block}
+
+  .empty{color:var(--muted);text-align:center;font-size:14px;padding:14px}
+  footer{margin-top:auto;text-align:center;color:var(--muted);font-size:12px;opacity:.8}
+  .edit-toggle{background:none;border:0;color:var(--accent);font-size:13px}
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">Py<span>Browser</span></div>
+    <div class="tag">Быстрый старт · поиск · закладки</div>
+  </header>
+
+  <form class="search" id="searchForm" autocomplete="off">
+    <input id="q" type="text" inputmode="search" enterkeyhint="go"
+           placeholder="Поиск или адрес сайта" aria-label="Поиск или адрес">
+    <button type="submit" aria-label="Открыть">➜</button>
+  </form>
+
+  <div class="engine-row" id="engines">
+    <button type="button" class="chip active" data-engine="duckduckgo">DuckDuckGo</button>
+    <button type="button" class="chip" data-engine="google">Google</button>
+    <button type="button" class="chip" data-engine="yandex">Яндекс</button>
+    <button type="button" class="chip" data-engine="youtube">YouTube</button>
+  </div>
+
+  <div>
+    <div class="section-title">
+      <span>Закладки</span>
+      <span>
+        <button class="edit-toggle" id="editToggle" type="button">Изменить</button>
+        <span class="add" id="addBtn" role="button" aria-label="Добавить">＋</span>
+      </span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>Пусто. Нажми ＋ чтобы добавить сайт.</div>
+  </div>
+
+  <footer>Открой меню Safari → «На экран «Домой»», чтобы пользоваться как приложением.</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var ENGINES = {
+    duckduckgo: "https://duckduckgo.com/?q=",
+    google:     "https://www.google.com/search?q=",
+    yandex:     "https://yandex.ru/search/?text=",
+    youtube:    "https://www.youtube.com/results?search_query="
+  };
+  var DEFAULT_LINKS = [
+    {name:"Google",    url:"https://www.google.com"},
+    {name:"YouTube",   url:"https://m.youtube.com"},
+    {name:"Wikipedia", url:"https://ru.wikipedia.org"},
+    {name:"Reddit",    url:"https://www.reddit.com"},
+    {name:"GitHub",    url:"https://github.com"},
+    {name:"Telegram",  url:"https://web.telegram.org"}
+  ];
+  var COLORS = ["#5b8cff","#ff7a59","#31c48d","#a855f7","#f59e0b","#ec4899","#14b8a6","#f43f5e"];
+
+  var LS_LINKS = "pybrowser.links";
+  var LS_ENGINE = "pybrowser.engine";
+
+  var q = document.getElementById("q");
+  var form = document.getElementById("searchForm");
+  var grid = document.getElementById("grid");
+  var empty = document.getElementById("empty");
+  var engineRow = document.getElementById("engines");
+
+  function load(key, fallback){
+    try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
+    catch(e){ return fallback; }
+  }
+  function save(key, val){ try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
+
+  var engine = load(LS_ENGINE, "duckduckgo");
+  var links = load(LS_LINKS, DEFAULT_LINKS);
+
+  // ---- input parsing: URL vs search ----
+  function looksLikeUrl(t){
+    t = t.trim();
+    if(!t || /\s/.test(t)) return false;
+    if(/^(https?:\/\/|file:\/\/|about:)/i.test(t)) return true;
+    if(/^localhost(:|\/|$)/i.test(t)) return true;
+    return /^[^.]+(\.[^.\s]+)+/.test(t); // has a dot, no spaces
+  }
+  function toUrl(t){
+    t = t.trim();
+    if(looksLikeUrl(t)) return /:\/\//.test(t) ? t : "http://" + t;
+    return ENGINES[engine] + encodeURIComponent(t);
+  }
+  function go(url){ window.location.href = url; }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+    var t = q.value.trim();
+    if(t) go(toUrl(t));
+  });
+
+  // ---- engine chips ----
+  function renderEngine(){
+    [].forEach.call(engineRow.children, function(c){
+      c.classList.toggle("active", c.dataset.engine === engine);
+    });
+  }
+  engineRow.addEventListener("click", function(e){
+    var b = e.target.closest(".chip"); if(!b) return;
+    engine = b.dataset.engine; save(LS_ENGINE, engine); renderEngine();
+    q.focus();
+  });
+
+  // ---- bookmarks grid ----
+  function faviconColor(i){ return COLORS[i % COLORS.length]; }
+  function letter(name, url){
+    var s = (name || url || "?").replace(/^https?:\/\//,"").trim();
+    return (s[0] || "?").toUpperCase();
+  }
+  function renderLinks(){
+    grid.innerHTML = "";
+    empty.hidden = links.length > 0;
+    links.forEach(function(link, i){
+      var a = document.createElement("a");
+      a.className = "tile";
+      a.href = link.url;
+      a.innerHTML =
+        '<span class="del" data-i="'+i+'">×</span>' +
+        '<span class="ico" style="background:'+faviconColor(i)+'">'+letter(link.name, link.url)+'</span>' +
+        '<span class="name">'+ (link.name || link.url) +'</span>';
+      grid.appendChild(a);
+    });
+  }
+  grid.addEventListener("click", function(e){
+    var del = e.target.closest(".del");
+    if(del){
+      e.preventDefault();
+      links.splice(parseInt(del.dataset.i,10), 1);
+      save(LS_LINKS, links); renderLinks();
+    }
+  });
+
+  // ---- add / edit ----
+  document.getElementById("addBtn").addEventListener("click", function(){
+    var url = prompt("Адрес сайта (например, apple.com):");
+    if(!url) return;
+    url = url.trim();
+    if(!/:\/\//.test(url)) url = "https://" + url.replace(/^\/+/,"");
+    var name = prompt("Название:", url.replace(/^https?:\/\//,"").replace(/\/.*$/,""));
+    links.push({name: (name||"").trim(), url: url});
+    save(LS_LINKS, links); renderLinks();
+  });
+  document.getElementById("editToggle").addEventListener("click", function(){
+    document.body.classList.toggle("editing");
+    this.textContent = document.body.classList.contains("editing") ? "Готово" : "Изменить";
+  });
+
+  renderEngine();
+  renderLinks();
+})();
+</script>
+</body>
+</html>
