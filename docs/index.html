@@ -2,8 +2,7 @@
 <html lang="ru" data-theme="dark">
 <head>
 <meta charset="utf-8">
-<!-- Mobile / iPhone friendly -->
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PyBrowser">
@@ -11,144 +10,259 @@
 <title>PyBrowser</title>
 <style>
   :root{
-    --radius:16px;
+    --radius:20px;
+    --accent:#5b8cff;
+    --ease:cubic-bezier(.22,1,.36,1);
   }
   html[data-theme="dark"]{
-    --bg:#0b0f1a; --bg2:#16203c; --panel:#151b2e; --panel2:#1d2540;
-    --text:#e7ecf5; --muted:#8a95b3; --accent:#5b8cff; --danger:#ff5b6e; --border:#2a3355;
+    --bg:#070a14; --text:#eef2fb; --muted:#9aa6c4;
+    --glass:rgba(24,31,52,.55); --glass-brd:rgba(255,255,255,.10);
+    --tile:rgba(30,38,64,.55); --danger:#ff5b6e; --shadow:rgba(0,0,0,.45);
+    --b1:#1b2a6b; --b2:#5b1f7a; --b3:#0f5f6b;
   }
   html[data-theme="light"]{
-    --bg:#eef1f8; --bg2:#dbe3f7; --panel:#ffffff; --panel2:#eef2fb;
-    --text:#141a2b; --muted:#66708c; --accent:#3a6ff0; --danger:#e23b52; --border:#d3dbec;
+    --bg:#e9eef9; --text:#101728; --muted:#5c667f;
+    --glass:rgba(255,255,255,.62); --glass-brd:rgba(255,255,255,.7);
+    --tile:rgba(255,255,255,.7); --danger:#e23b52; --shadow:rgba(60,80,140,.18);
+    --b1:#8fb4ff; --b2:#d8a4f0; --b3:#8fe6e0;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+  html,body{margin:0;min-height:100%}
   body{
-    background:radial-gradient(120% 90% at 50% -10%, var(--bg2) 0%, var(--bg) 55%);
-    color:var(--text);
-    font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    padding:max(env(safe-area-inset-top),18px) 16px calc(env(safe-area-inset-bottom) + 16px);
-    display:flex;flex-direction:column;gap:18px;min-height:100%;
+    background:var(--bg); color:var(--text);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:max(env(safe-area-inset-top),22px) 16px calc(env(safe-area-inset-bottom) + 22px);
+    display:flex;flex-direction:column;gap:20px;min-height:100vh;position:relative;overflow-x:hidden;
   }
-  header{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
-  .brand{display:flex;flex-direction:column;gap:2px}
-  .logo{font-size:26px;font-weight:800;letter-spacing:.5px}
-  .logo span{color:var(--accent)}
-  .tag{color:var(--muted);font-size:12px}
-  .theme-btn{
-    width:44px;height:44px;border-radius:50%;border:1px solid var(--border);
-    background:var(--panel);color:var(--text);font-size:20px;flex:0 0 auto;
-  }
+  /* animated aurora background */
+  .bg{position:fixed;inset:-20% -10%;z-index:-1;filter:blur(70px);opacity:.9;pointer-events:none}
+  .bg span{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:float 18s var(--ease) infinite alternate}
+  html[data-theme="light"] .bg span{mix-blend-mode:multiply;opacity:.6}
+  .bg .b1{width:52vw;height:52vw;left:-6vw;top:-8vw;background:var(--b1);animation-duration:16s}
+  .bg .b2{width:46vw;height:46vw;right:-8vw;top:6vh;background:var(--b2);animation-duration:22s}
+  .bg .b3{width:50vw;height:50vw;left:12vw;bottom:-14vh;background:var(--b3);animation-duration:19s}
+  @keyframes float{from{transform:translate(0,0) scale(1)}to{transform:translate(6vw,5vh) scale(1.15)}}
+  @media (prefers-reduced-motion:reduce){.bg span{animation:none}}
 
-  form.search{position:relative;display:flex;gap:8px}
-  .search input{
-    flex:1;min-width:0;padding:16px 16px;border-radius:var(--radius);
-    border:1px solid var(--border);background:var(--panel);color:var(--text);
-    font-size:17px;outline:none;
-  }
-  .search input:focus{border-color:var(--accent)}
-  .search button{
-    padding:0 18px;border:0;border-radius:var(--radius);
-    background:var(--accent);color:#fff;font-size:18px;font-weight:700;
-  }
+  .glass{background:var(--glass);border:1px solid var(--glass-brd);
+    -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+    box-shadow:0 12px 40px var(--shadow)}
 
-  .engine-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
-  .chip{
-    padding:7px 14px;border-radius:999px;border:1px solid var(--border);
-    background:var(--panel);color:var(--muted);font-size:13px;position:relative;
-  }
-  .chip.active{background:var(--panel2);color:var(--text);border-color:var(--accent)}
-  .chip .x{margin-left:6px;color:var(--danger);font-weight:700;display:none}
-  body.editing-engines .chip.custom .x{display:inline}
-  .chip.addchip{color:var(--accent);font-weight:700}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .hello{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .clock{font-size:34px;font-weight:800;letter-spacing:.5px;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .greet{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .greet b{color:var(--text);font-weight:700}
+  .gear{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+    font-size:20px;color:var(--text);flex:0 0 auto;border:1px solid var(--glass-brd);
+    background:var(--glass);transition:transform .4s var(--ease)}
+  .gear:active{transform:rotate(90deg)}
 
-  .section-title{display:flex;align-items:center;justify-content:space-between;
-    color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:4px 2px}
-  .section-title .actions{display:flex;gap:12px;align-items:center}
-  .link-btn{background:none;border:0;color:var(--accent);font-size:13px;padding:2px 2px}
-  .add{color:var(--accent);font-size:20px;font-weight:700;padding:2px 8px}
+  /* search */
+  .searchwrap{position:relative;z-index:50}
+  form.search{display:flex;align-items:center;gap:8px;border-radius:var(--radius);
+    padding:6px 6px 6px 8px}
+  .eng-toggle{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:14px;
+    background:rgba(127,127,127,.12);border:0;color:var(--text);font-size:14px;font-weight:600;
+    max-width:38%;overflow:hidden;white-space:nowrap}
+  .eng-toggle .fav{width:18px;height:18px;border-radius:5px;flex:0 0 auto}
+  .eng-toggle .car{color:var(--muted);font-size:11px}
+  .search input{flex:1;min-width:0;padding:14px 6px;border:0;background:transparent;
+    color:var(--text);font-size:17px;outline:none}
+  .search input::placeholder{color:var(--muted)}
+  .go{width:46px;height:46px;flex:0 0 auto;border:0;border-radius:14px;color:#fff;font-size:19px;
+    background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 55%,#b06bff));
+    box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 45%,transparent)}
+  .go:active{transform:scale(.94)}
 
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  @media (max-width:360px){.grid{grid-template-columns:repeat(3,1fr)}}
-  .tile{
-    position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
-    padding:14px 6px;border-radius:var(--radius);background:var(--panel);
-    border:1px solid var(--border);text-decoration:none;color:var(--text);
-  }
-  .tile:active{background:var(--panel2)}
-  .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
-    font-size:20px;font-weight:800;color:#fff}
-  .tile .name{font-size:12px;color:var(--muted);max-width:100%;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap}
-  .tile .del{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;
-    background:var(--danger);color:#fff;font-size:14px;line-height:22px;text-align:center;
-    display:none}
+  /* suggestions / engine dropdown */
+  .pop{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:40;border-radius:18px;
+    padding:6px;display:none;max-height:52vh;overflow:auto;-webkit-overflow-scrolling:touch;
+    background:color-mix(in srgb,var(--bg) 88%, var(--accent) 4%)}
+  .pop.open{display:block;animation:pop .18s var(--ease)}
+  @keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .pop .row{display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:12px;
+    color:var(--text);text-decoration:none;cursor:pointer}
+  .pop .row:active,.pop .row.sel{background:rgba(127,127,127,.16)}
+  .pop .row .ic{width:22px;height:22px;flex:0 0 auto;display:grid;place-items:center;
+    border-radius:6px;font-size:13px;overflow:hidden}
+  .pop .row .ic img{width:100%;height:100%}
+  .pop .row .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}
+  .pop .row .s{color:var(--muted);font-size:12px}
+
+  .engrow{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .engrow::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;
+    border:1px solid var(--glass-brd);background:var(--glass);color:var(--muted);font-size:13px;font-weight:600}
+  .chip.active{color:#fff;border-color:transparent;
+    background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 55%,#b06bff))}
+  .chip .fav{width:16px;height:16px;border-radius:4px}
+  .chip.addchip{color:var(--accent)}
+
+  .sec{display:flex;align-items:center;justify-content:space-between;margin:2px 4px}
+  .sec h2{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+  .sec .acts{display:flex;gap:14px;align-items:center}
+  .lbtn{background:none;border:0;color:var(--accent);font-size:13px;font-weight:600;padding:2px}
+
+  /* speed dial */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media (max-width:360px){.grid{grid-template-columns:repeat(3,1fr);gap:12px}}
+  .tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:9px;
+    padding:16px 6px;border-radius:var(--radius);text-decoration:none;color:var(--text);
+    transition:transform .15s var(--ease)}
+  .tile:active{transform:scale(.93)}
+  .tile .ico{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;
+    font-size:22px;font-weight:800;color:#fff;overflow:hidden;box-shadow:0 6px 16px var(--shadow)}
+  .tile .ico img{width:100%;height:100%;object-fit:cover}
+  .tile .nm{font-size:12px;color:var(--muted);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tile .del{position:absolute;top:2px;right:8px;width:24px;height:24px;border-radius:50%;
+    background:var(--danger);color:#fff;font-size:15px;line-height:24px;text-align:center;
+    display:none;box-shadow:0 3px 10px var(--shadow);animation:wob .3s var(--ease) infinite alternate}
+  @keyframes wob{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
   body.editing .tile .del{display:block}
+  body.editing .tile{animation:jiggle .28s var(--ease) infinite alternate}
+  @keyframes jiggle{from{transform:rotate(-.7deg)}to{transform:rotate(.7deg)}}
+  .tile.addtile .ico{background:rgba(127,127,127,.18);color:var(--accent)}
 
-  .hist{display:flex;flex-direction:column;gap:2px}
-  .hist a{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;
-    text-decoration:none;color:var(--text);background:var(--panel);border:1px solid var(--border)}
-  .hist a:active{background:var(--panel2)}
-  .hist .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto}
-  .hist .h-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
-  .hist .h-url{color:var(--muted);font-size:12px;max-width:38%;overflow:hidden;
-    text-overflow:ellipsis;white-space:nowrap}
+  /* history */
+  .hist{display:flex;flex-direction:column;gap:8px}
+  .hist a{display:flex;align-items:center;gap:12px;padding:12px;border-radius:15px;
+    text-decoration:none;color:var(--text)}
+  .hist a:active{background:rgba(127,127,127,.14)}
+  .hist .ic{width:26px;height:26px;border-radius:8px;flex:0 0 auto;display:grid;place-items:center;
+    overflow:hidden;font-size:13px;background:rgba(127,127,127,.15)}
+  .hist .ic img{width:100%;height:100%}
+  .hist .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+  .hist .u{color:var(--muted);font-size:12px;max-width:34%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  .empty{color:var(--muted);text-align:center;font-size:14px;padding:14px}
-  footer{margin-top:auto;text-align:center;color:var(--muted);font-size:12px;opacity:.85}
+  .empty{color:var(--muted);text-align:center;font-size:14px;padding:16px}
+  footer{margin-top:auto;text-align:center;color:var(--muted);font-size:12px;opacity:.8}
+  .pad{padding:10px 12px;border-radius:var(--radius)}
+
+  /* settings sheet */
+  .scrim{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:none;opacity:0;transition:opacity .25s}
+  .scrim.open{display:block;opacity:1}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;transform:translateY(100%);
+    transition:transform .35s var(--ease);border-radius:26px 26px 0 0;padding:8px 18px calc(env(safe-area-inset-bottom) + 22px);
+    max-height:88vh;overflow:auto;-webkit-overflow-scrolling:touch}
+  .sheet.open{transform:none}
+  .grip{width:44px;height:5px;border-radius:3px;background:var(--muted);opacity:.5;margin:8px auto 12px}
+  .sheet h3{margin:18px 2px 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .seg{display:flex;gap:6px;background:rgba(127,127,127,.14);padding:5px;border-radius:14px}
+  .seg button{flex:1;border:0;background:none;color:var(--muted);font-size:14px;font-weight:600;
+    padding:10px;border-radius:10px}
+  .seg button.on{background:var(--glass);color:var(--text);box-shadow:0 3px 10px var(--shadow)}
+  .swatches{display:flex;gap:12px;flex-wrap:wrap}
+  .sw{width:38px;height:38px;border-radius:50%;border:2px solid transparent;position:relative}
+  .sw.on{border-color:var(--text)}
+  .sw.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:800}
+  .setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;
+    border-radius:14px;background:rgba(127,127,127,.10);margin-bottom:8px}
+  .setrow .lab{font-size:15px}
+  .setrow .sub{color:var(--muted);font-size:12px}
+  .mini{border:1px solid var(--glass-brd);background:var(--glass);color:var(--text);
+    padding:9px 14px;border-radius:12px;font-size:14px;font-weight:600}
+  .mini.dgr{color:var(--danger)}
+  .englist{display:flex;flex-direction:column;gap:8px}
+  .engitem{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:rgba(127,127,127,.10)}
+  .engitem .fav{width:20px;height:20px;border-radius:5px}
+  .engitem .en{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+  .engitem .rm{color:var(--danger);font-size:18px;padding:0 6px}
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 24px);transform:translateX(-50%) translateY(20px);
+    z-index:80;padding:12px 18px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;
+    transition:.3s var(--ease)}
+  .toast.show{opacity:1;transform:translateX(-50%)}
 </style>
 </head>
 <body>
+  <div class="bg"><span class="b1"></span><span class="b2"></span><span class="b3"></span></div>
+
   <header>
-    <div class="brand">
-      <div class="logo">Py<span>Browser</span></div>
-      <div class="tag">Поиск · закладки · история</div>
+    <div class="hello">
+      <div class="clock" id="clock">--:--</div>
+      <div class="greet" id="greet">Привет 👋</div>
     </div>
-    <button class="theme-btn" id="themeBtn" type="button" aria-label="Сменить тему">🌙</button>
+    <button class="gear glass" id="openSettings" aria-label="Настройки">⚙️</button>
   </header>
 
-  <form class="search" id="searchForm" autocomplete="off">
-    <input id="q" type="text" inputmode="search" enterkeyhint="go"
-           placeholder="Поиск или адрес сайта" aria-label="Поиск или адрес">
-    <button type="submit" aria-label="Открыть">➜</button>
-  </form>
+  <div class="searchwrap">
+    <form class="search glass" id="searchForm" autocomplete="off">
+      <button type="button" class="eng-toggle" id="engToggle" aria-label="Поисковик">
+        <img class="fav" id="engFav" alt=""><span id="engName">DuckDuckGo</span><span class="car">▾</span>
+      </button>
+      <input id="q" type="text" inputmode="search" enterkeyhint="go" placeholder="Поиск или сайт" aria-label="Поиск или адрес">
+      <button type="submit" class="go" aria-label="Открыть">➜</button>
+    </form>
+    <div class="pop glass" id="pop"></div>
+  </div>
 
-  <div class="engine-row" id="engines"><!-- engines injected here --></div>
+  <div class="engrow" id="engrow"></div>
 
   <div>
-    <div class="section-title">
-      <span>Закладки</span>
-      <span class="actions">
-        <button class="link-btn" id="editToggle" type="button">Изменить</button>
-        <span class="add" id="addBtn" role="button" aria-label="Добавить">＋</span>
-      </span>
-    </div>
+    <div class="sec"><h2>Табло</h2><div class="acts">
+      <button class="lbtn" id="editToggle" type="button">Изменить</button>
+    </div></div>
     <div class="grid" id="grid"></div>
-    <div class="empty" id="emptyLinks" hidden>Пусто. Нажми ＋ чтобы добавить сайт.</div>
   </div>
 
   <div>
-    <div class="section-title">
-      <span>Недавнее</span>
-      <span class="actions">
-        <button class="link-btn" id="clearHist" type="button">Очистить</button>
-      </span>
-    </div>
-    <div class="hist" id="hist"></div>
+    <div class="sec"><h2>Недавнее</h2><div class="acts">
+      <button class="lbtn" id="clearHist" type="button">Очистить</button>
+    </div></div>
+    <div class="hist glass pad" id="hist"></div>
     <div class="empty" id="emptyHist" hidden>История пуста.</div>
   </div>
 
-  <footer>Меню Safari → «На экран «Домой»», чтобы пользоваться как приложением.</footer>
+  <footer>Safari → «Поделиться» → «На экран «Домой»» — и это приложение 🚀</footer>
+
+  <!-- Settings -->
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet glass" id="sheet">
+    <div class="grip"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <strong style="font-size:19px">Настройки</strong>
+      <button class="mini" id="closeSettings">Готово</button>
+    </div>
+
+    <h3>Тема</h3>
+    <div class="seg" id="themeSeg">
+      <button data-theme="dark">🌙 Тёмная</button>
+      <button data-theme="light">☀️ Светлая</button>
+      <button data-theme="auto">🌓 Авто</button>
+    </div>
+
+    <h3>Акцент</h3>
+    <div class="swatches" id="swatches"></div>
+
+    <h3>Поисковики</h3>
+    <div class="englist" id="engList"></div>
+    <button class="mini" id="addEngine" style="margin-top:10px">＋ Добавить поисковик</button>
+
+    <h3>Данные</h3>
+    <div class="setrow"><div><div class="lab">Экспорт</div><div class="sub">Скопировать закладки и настройки</div></div>
+      <button class="mini" id="exportBtn">Копировать</button></div>
+    <div class="setrow"><div><div class="lab">Импорт</div><div class="sub">Вставить ранее скопированные данные</div></div>
+      <button class="mini" id="importBtn">Вставить</button></div>
+    <div class="setrow"><div><div class="lab">Сброс</div><div class="sub">Удалить всё и вернуть по умолчанию</div></div>
+      <button class="mini dgr" id="resetBtn">Сбросить</button></div>
+
+    <p style="color:var(--muted);font-size:12px;text-align:center;margin:18px 0 4px">PyBrowser · веб-версия</p>
+  </div>
+
+  <div class="toast glass" id="toast"></div>
 
 <script>
 (function(){
   "use strict";
 
   var DEFAULT_ENGINES = [
-    {id:"duckduckgo", name:"DuckDuckGo", tpl:"https://duckduckgo.com/?q=%s", custom:false},
-    {id:"google",     name:"Google",     tpl:"https://www.google.com/search?q=%s", custom:false},
-    {id:"yandex",     name:"Яндекс",     tpl:"https://yandex.ru/search/?text=%s", custom:false},
-    {id:"youtube",    name:"YouTube",    tpl:"https://www.youtube.com/results?search_query=%s", custom:false}
+    {id:"duckduckgo", name:"DuckDuckGo", host:"duckduckgo.com",       tpl:"https://duckduckgo.com/?q=%s", custom:false},
+    {id:"google",     name:"Google",     host:"google.com",           tpl:"https://www.google.com/search?q=%s", custom:false},
+    {id:"yandex",     name:"Яндекс",      host:"yandex.ru",            tpl:"https://yandex.ru/search/?text=%s", custom:false},
+    {id:"bing",       name:"Bing",        host:"bing.com",             tpl:"https://www.bing.com/search?q=%s", custom:false},
+    {id:"youtube",    name:"YouTube",     host:"youtube.com",          tpl:"https://www.youtube.com/results?search_query=%s", custom:false}
   ];
   var DEFAULT_LINKS = [
     {name:"Google",    url:"https://www.google.com"},
@@ -156,200 +270,268 @@
     {name:"Wikipedia", url:"https://ru.wikipedia.org"},
     {name:"Reddit",    url:"https://www.reddit.com"},
     {name:"GitHub",    url:"https://github.com"},
-    {name:"Telegram",  url:"https://web.telegram.org"}
+    {name:"Telegram",  url:"https://web.telegram.org"},
+    {name:"Twitch",    url:"https://m.twitch.tv"},
+    {name:"Gmail",     url:"https://mail.google.com"}
   ];
+  var ACCENTS = ["#5b8cff","#8b5cf6","#ec4899","#f43f5e","#f59e0b","#10b981","#06b6d4","#e2e8f0"];
   var COLORS = ["#5b8cff","#ff7a59","#31c48d","#a855f7","#f59e0b","#ec4899","#14b8a6","#f43f5e"];
-  var MAX_HISTORY = 40;
+  var MAX_HISTORY = 60;
 
-  var K = {
-    engines:"pybrowser.engines", engine:"pybrowser.engine",
-    links:"pybrowser.links", history:"pybrowser.history", theme:"pybrowser.theme"
-  };
+  var K = {engines:"pb.engines",engine:"pb.engine",links:"pb.links",history:"pb.history",settings:"pb.settings"};
+  function load(k,fb){try{var v=JSON.parse(localStorage.getItem(k));return v==null?fb:v;}catch(e){return fb;}}
+  function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
-  function load(key, fb){
-    try{ var v = JSON.parse(localStorage.getItem(key)); return v == null ? fb : v; }
-    catch(e){ return fb; }
-  }
-  function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
-
-  var engines = load(K.engines, DEFAULT_ENGINES);
+  var engines  = load(K.engines, DEFAULT_ENGINES);
   var engineId = load(K.engine, "duckduckgo");
-  var links = load(K.links, DEFAULT_LINKS);
-  var history = load(K.history, []);
-  var theme = load(K.theme, "dark");
+  var links    = load(K.links, DEFAULT_LINKS);
+  var history  = load(K.history, []);
+  var settings = load(K.settings, {theme:"dark", accent:"#5b8cff"});
 
-  var q = document.getElementById("q");
-  var form = document.getElementById("searchForm");
-  var engineRow = document.getElementById("engines");
-  var grid = document.getElementById("grid");
-  var emptyLinks = document.getElementById("emptyLinks");
-  var histEl = document.getElementById("hist");
-  var emptyHist = document.getElementById("emptyHist");
+  var $ = function(id){return document.getElementById(id);};
+  var q=$("q"), pop=$("pop"), engrow=$("engrow"), grid=$("grid"),
+      histEl=$("hist"), emptyHist=$("emptyHist");
 
-  function currentEngine(){
-    return engines.filter(function(e){return e.id === engineId;})[0] || engines[0];
+  function host(u){ try{return new URL(u).hostname.replace(/^www\./,"");}catch(e){
+    return (u||"").replace(/^https?:\/\//,"").replace(/\/.*$/,"").replace(/^www\./,""); } }
+  function favicon(h){ return "https://www.google.com/s2/favicons?sz=64&domain=" + encodeURIComponent(h); }
+  function eng(){ return engines.filter(function(e){return e.id===engineId;})[0] || engines[0]; }
+
+  // ---------- theme + accent ----------
+  function effectiveTheme(){
+    if(settings.theme==="auto")
+      return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return settings.theme;
   }
-
-  // ---- theme ----
   function applyTheme(){
-    document.documentElement.setAttribute("data-theme", theme);
-    document.getElementById("themeBtn").textContent = theme === "dark" ? "🌙" : "☀️";
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if(meta) meta.setAttribute("content", theme === "dark" ? "#0b0f1a" : "#eef1f8");
+    var t = effectiveTheme();
+    document.documentElement.setAttribute("data-theme", t);
+    document.documentElement.style.setProperty("--accent", settings.accent);
+    var m=document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute("content", t==="dark" ? "#070a14" : "#e9eef9");
   }
-  document.getElementById("themeBtn").addEventListener("click", function(){
-    theme = theme === "dark" ? "light" : "dark";
-    save(K.theme, theme); applyTheme();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(){
+    if(settings.theme==="auto") applyTheme();
   });
 
-  // ---- input parsing ----
-  function looksLikeUrl(t){
-    t = t.trim();
-    if(!t || /\s/.test(t)) return false;
-    if(/^(https?:\/\/|file:\/\/|about:)/i.test(t)) return true;
-    if(/^localhost(:|\/|$)/i.test(t)) return true;
-    return /^[^.]+(\.[^.\s]+)+/.test(t);
-  }
-  function toUrl(t){
-    t = t.trim();
-    if(looksLikeUrl(t)) return /:\/\//.test(t) ? t : "http://" + t;
-    return currentEngine().tpl.replace("%s", encodeURIComponent(t));
-  }
-  function pushHistory(title, url){
-    history = history.filter(function(h){ return h.url !== url; });
-    history.unshift({title:title, url:url, t:Date.now()});
-    if(history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-    save(K.history, history);
-  }
-  function go(rawInput){
-    var url = toUrl(rawInput);
-    var isSearch = !looksLikeUrl(rawInput.trim());
-    pushHistory(isSearch ? ("🔎 " + rawInput.trim()) : url.replace(/^https?:\/\//,""), url);
-    window.location.href = url;
+  // ---------- clock + greeting ----------
+  function tick(){
+    var d=new Date(), h=d.getHours();
+    $("clock").textContent =
+      ("0"+h).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+    var part = h<6?"Доброй ночи":h<12?"Доброе утро":h<18?"Добрый день":"Добрый вечер";
+    var days=["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+    var mon=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+    $("greet").innerHTML = "<b>"+part+"</b> · "+d.getDate()+" "+mon[d.getMonth()]+", "+days[d.getDay()];
   }
 
-  form.addEventListener("submit", function(e){
-    e.preventDefault();
-    var t = q.value.trim();
-    if(t) go(t);
-  });
+  // ---------- input parsing ----------
+  function looksLikeUrl(t){t=t.trim();
+    if(!t||/\s/.test(t))return false;
+    if(/^(https?:\/\/|file:\/\/|about:)/i.test(t))return true;
+    if(/^localhost(:|\/|$)/i.test(t))return true;
+    return /^[^.]+(\.[^.\s]+)+/.test(t);}
+  function toUrl(t){t=t.trim();
+    if(looksLikeUrl(t))return /:\/\//.test(t)?t:"http://"+t;
+    return eng().tpl.replace("%s",encodeURIComponent(t));}
+  function pushHistory(title,url){
+    history=history.filter(function(h){return h.url!==url;});
+    history.unshift({title:title,url:url,t:Date.now()});
+    if(history.length>MAX_HISTORY)history=history.slice(0,MAX_HISTORY);
+    save(K.history,history);}
+  function go(raw){
+    var url=toUrl(raw), search=!looksLikeUrl(raw.trim());
+    pushHistory(search?("🔎 "+raw.trim()):host(url), url);
+    window.location.href=url;}
 
-  // ---- engines ----
-  function renderEngines(){
-    engineRow.innerHTML = "";
-    engines.forEach(function(e){
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "chip" + (e.id === engineId ? " active" : "") + (e.custom ? " custom" : "");
-      b.dataset.id = e.id;
-      b.innerHTML = e.name + (e.custom ? ' <span class="x" data-del="'+e.id+'">✕</span>' : "");
-      engineRow.appendChild(b);
+  $("searchForm").addEventListener("submit",function(e){
+    e.preventDefault(); var t=q.value.trim(); if(t) go(t);});
+
+  // ---------- suggestions ----------
+  function renderSuggest(){
+    var val=q.value.trim(); pop.innerHTML="";
+    var rows=[];
+    if(val){
+      rows.push({icon:"🔎",title:"Искать «"+val+"» в "+eng().name,action:function(){go(val);}});
+    }
+    var seen={}, lc=val.toLowerCase();
+    history.forEach(function(h){
+      if(rows.length>7) return;
+      if(seen[h.url]) return;
+      if(val && (h.title.toLowerCase().indexOf(lc)<0 && h.url.toLowerCase().indexOf(lc)<0)) return;
+      seen[h.url]=1;
+      rows.push({fav:favicon(host(h.url)),title:h.title||h.url,sub:host(h.url),
+        action:function(){pushHistory(h.title,h.url);location.href=h.url;}});
     });
-    var add = document.createElement("button");
-    add.type = "button"; add.className = "chip addchip"; add.id = "addEngine";
-    add.textContent = "＋ поисковик";
-    engineRow.appendChild(add);
+    if(!rows.length){ pop.classList.remove("open"); return; }
+    rows.forEach(function(r){
+      var el=document.createElement("div"); el.className="row";
+      el.innerHTML='<span class="ic">'+(r.fav?'<img src="'+r.fav+'" onerror="this.style.display=\'none\'">':(r.icon||""))+'</span>'+
+        '<span class="t">'+r.title+'</span>'+(r.sub?'<span class="s">'+r.sub+'</span>':'');
+      el.addEventListener("mousedown",function(ev){ev.preventDefault();});
+      el.addEventListener("click",r.action);
+      pop.appendChild(el);
+    });
+    pop.classList.add("open");
   }
-  engineRow.addEventListener("click", function(e){
-    var del = e.target.closest("[data-del]");
-    if(del){
-      e.stopPropagation();
-      var id = del.getAttribute("data-del");
-      engines = engines.filter(function(x){ return x.id !== id; });
-      if(engineId === id) engineId = engines[0].id;
-      save(K.engines, engines); save(K.engine, engineId); renderEngines();
-      return;
-    }
-    if(e.target.id === "addEngine"){
-      addEngine(); return;
-    }
-    var chip = e.target.closest(".chip");
-    if(chip && chip.dataset.id){
-      engineId = chip.dataset.id; save(K.engine, engineId); renderEngines(); q.focus();
-    }
+  q.addEventListener("input",renderSuggest);
+  q.addEventListener("focus",renderSuggest);
+  document.addEventListener("click",function(e){
+    if(!e.target.closest(".searchwrap")) pop.classList.remove("open");
   });
-  function addEngine(){
-    var name = prompt("Название поисковика (например, Bing):");
-    if(!name) return;
-    var tpl = prompt('Адрес поиска, где %s — это запрос.\nНапример: https://www.bing.com/search?q=%s');
-    if(!tpl || tpl.indexOf("%s") === -1){
-      alert("Нужен адрес со знаком %s вместо запроса.");
-      return;
-    }
-    var id = "c" + Date.now();
-    engines.push({id:id, name:name.trim(), tpl:tpl.trim(), custom:true});
-    engineId = id;
-    save(K.engines, engines); save(K.engine, engineId); renderEngines();
-  }
 
-  // ---- bookmarks ----
-  function color(i){ return COLORS[i % COLORS.length]; }
-  function letter(name, url){
-    var s = (name || url || "?").replace(/^https?:\/\//,"").trim();
-    return (s[0] || "?").toUpperCase();
+  // ---------- engines ----------
+  function paintEngineToggle(){
+    $("engName").textContent=eng().name;
+    $("engFav").src=favicon(eng().host||host(eng().tpl));
   }
+  function renderEngines(){
+    engrow.innerHTML="";
+    engines.forEach(function(e){
+      var b=document.createElement("button");
+      b.type="button"; b.className="chip"+(e.id===engineId?" active":"");
+      b.innerHTML='<img class="fav" src="'+favicon(e.host||host(e.tpl))+'" onerror="this.style.visibility=\'hidden\'">'+e.name;
+      b.addEventListener("click",function(){engineId=e.id;save(K.engine,engineId);renderEngines();paintEngineToggle();q.focus();});
+      engrow.appendChild(b);
+    });
+    var add=document.createElement("button");
+    add.type="button"; add.className="chip addchip"; add.textContent="＋";
+    add.addEventListener("click",openSettings);
+    engrow.appendChild(add);
+    paintEngineToggle();
+  }
+  $("engToggle").addEventListener("click",function(){
+    var i=engines.indexOf(eng()); engineId=engines[(i+1)%engines.length].id;
+    save(K.engine,engineId); renderEngines();
+  });
+
+  // ---------- speed dial ----------
+  function color(i){return COLORS[i%COLORS.length];}
+  function letter(n,u){var s=(n||u||"?").replace(/^https?:\/\//,"").trim();return (s[0]||"?").toUpperCase();}
   function renderLinks(){
-    grid.innerHTML = "";
-    emptyLinks.hidden = links.length > 0;
-    links.forEach(function(link, i){
-      var a = document.createElement("a");
-      a.className = "tile"; a.href = link.url;
-      a.innerHTML =
-        '<span class="del" data-i="'+i+'">×</span>' +
-        '<span class="ico" style="background:'+color(i)+'">'+letter(link.name, link.url)+'</span>' +
-        '<span class="name">'+ (link.name || link.url) +'</span>';
-      a.addEventListener("click", function(){
-        if(!document.body.classList.contains("editing"))
-          pushHistory(link.name || link.url, link.url);
+    grid.innerHTML="";
+    links.forEach(function(link,i){
+      var a=document.createElement("a"); a.className="tile"; a.href=link.url;
+      a.innerHTML='<span class="del" data-i="'+i+'">×</span>'+
+        '<span class="ico" style="background:'+color(i)+'">'+
+          '<img src="'+favicon(host(link.url))+'" alt="" onerror="this.remove()">'+letter(link.name,link.url)+
+        '</span><span class="nm">'+(link.name||host(link.url))+'</span>';
+      a.addEventListener("click",function(ev){
+        if(document.body.classList.contains("editing")){ev.preventDefault();return;}
+        pushHistory(link.name||host(link.url),link.url);
       });
       grid.appendChild(a);
     });
+    var add=document.createElement("a"); add.className="tile addtile"; add.href="#";
+    add.innerHTML='<span class="ico">＋</span><span class="nm">Добавить</span>';
+    add.addEventListener("click",function(ev){ev.preventDefault();addLink();});
+    grid.appendChild(add);
   }
-  grid.addEventListener("click", function(e){
-    var del = e.target.closest(".del");
-    if(del){
-      e.preventDefault();
-      links.splice(parseInt(del.dataset.i,10), 1);
-      save(K.links, links); renderLinks();
-    }
+  grid.addEventListener("click",function(e){
+    var del=e.target.closest(".del");
+    if(del){e.preventDefault();links.splice(parseInt(del.dataset.i,10),1);save(K.links,links);renderLinks();}
   });
-  document.getElementById("addBtn").addEventListener("click", function(){
-    var url = prompt("Адрес сайта (например, apple.com):");
-    if(!url) return;
-    url = url.trim();
-    if(!/:\/\//.test(url)) url = "https://" + url.replace(/^\/+/,"");
-    var name = prompt("Название:", url.replace(/^https?:\/\//,"").replace(/\/.*$/,""));
-    links.push({name:(name||"").trim(), url:url});
-    save(K.links, links); renderLinks();
-  });
-  document.getElementById("editToggle").addEventListener("click", function(){
+  function addLink(){
+    var url=prompt("Адрес сайта (например, apple.com):"); if(!url)return;
+    url=url.trim(); if(!/:\/\//.test(url)) url="https://"+url.replace(/^\/+/,"");
+    var name=prompt("Название:",host(url));
+    links.push({name:(name||"").trim(),url:url}); save(K.links,links); renderLinks();
+  }
+  $("editToggle").addEventListener("click",function(){
     document.body.classList.toggle("editing");
-    this.textContent = document.body.classList.contains("editing") ? "Готово" : "Изменить";
+    this.textContent=document.body.classList.contains("editing")?"Готово":"Изменить";
   });
 
-  // ---- history ----
+  // ---------- history ----------
   function renderHistory(){
-    histEl.innerHTML = "";
-    emptyHist.hidden = history.length > 0;
-    history.slice(0, 12).forEach(function(h){
-      var a = document.createElement("a");
-      a.href = h.url;
-      a.innerHTML =
-        '<span class="dot"></span>' +
-        '<span class="h-title">'+ (h.title || h.url) +'</span>' +
-        '<span class="h-url">'+ h.url.replace(/^https?:\/\//,"").replace(/\/.*$/,"") +'</span>';
+    histEl.innerHTML=""; emptyHist.hidden=history.length>0;
+    histEl.style.display=history.length?"":"none";
+    history.slice(0,14).forEach(function(h){
+      var a=document.createElement("a"); a.href=h.url;
+      a.innerHTML='<span class="ic"><img src="'+favicon(host(h.url))+'" onerror="this.style.display=\'none\'"></span>'+
+        '<span class="t">'+(h.title||h.url)+'</span><span class="u">'+host(h.url)+'</span>';
       histEl.appendChild(a);
     });
   }
-  document.getElementById("clearHist").addEventListener("click", function(){
-    history = []; save(K.history, history); renderHistory();
+  $("clearHist").addEventListener("click",function(){history=[];save(K.history,history);renderHistory();});
+
+  // ---------- settings sheet ----------
+  function openSettings(){ $("scrim").classList.add("open"); $("sheet").classList.add("open"); renderSettings(); }
+  function closeSettings(){ $("scrim").classList.remove("open"); $("sheet").classList.remove("open"); }
+  $("openSettings").addEventListener("click",openSettings);
+  $("closeSettings").addEventListener("click",closeSettings);
+  $("scrim").addEventListener("click",closeSettings);
+
+  function renderSettings(){
+    // theme seg
+    [].forEach.call($("themeSeg").children,function(b){
+      b.classList.toggle("on", b.dataset.theme===settings.theme);
+    });
+    // swatches
+    var sw=$("swatches"); sw.innerHTML="";
+    ACCENTS.forEach(function(c){
+      var d=document.createElement("div"); d.className="sw"+(c===settings.accent?" on":"");
+      d.style.background=c;
+      d.addEventListener("click",function(){settings.accent=c;save(K.settings,settings);applyTheme();renderSettings();renderEngines();renderLinks();});
+      sw.appendChild(d);
+    });
+    // engines list
+    var el=$("engList"); el.innerHTML="";
+    engines.forEach(function(e){
+      var it=document.createElement("div"); it.className="engitem";
+      it.innerHTML='<img class="fav" src="'+favicon(e.host||host(e.tpl))+'" onerror="this.style.visibility=\'hidden\'">'+
+        '<span class="en">'+e.name+'</span>'+(e.custom?'<span class="rm">🗑️</span>':'<span class="sub" style="color:var(--muted);font-size:12px">по умолч.</span>');
+      var rm=it.querySelector(".rm");
+      if(rm) rm.addEventListener("click",function(){
+        engines=engines.filter(function(x){return x.id!==e.id;});
+        if(engineId===e.id)engineId=engines[0].id;
+        save(K.engines,engines);save(K.engine,engineId);renderEngines();renderSettings();
+      });
+      el.appendChild(it);
+    });
+  }
+  [].forEach.call($("themeSeg").children,function(b){
+    b.addEventListener("click",function(){settings.theme=b.dataset.theme;save(K.settings,settings);applyTheme();renderSettings();});
+  });
+  $("addEngine").addEventListener("click",function(){
+    var name=prompt("Название поисковика:"); if(!name)return;
+    var tpl=prompt("Адрес поиска, где %s — запрос:\nнапр. https://searx.be/search?q=%s");
+    if(!tpl||tpl.indexOf("%s")<0){toast("Нужен адрес со знаком %s");return;}
+    engines.push({id:"c"+Date.now(),name:name.trim(),host:host(tpl),tpl:tpl.trim(),custom:true});
+    save(K.engines,engines);renderEngines();renderSettings();
   });
 
-  // ---- init ----
-  applyTheme();
-  renderEngines();
-  renderLinks();
-  renderHistory();
+  // ---------- export / import / reset ----------
+  function snapshot(){return JSON.stringify({engines:engines,engineId:engineId,links:links,history:history,settings:settings});}
+  $("exportBtn").addEventListener("click",function(){
+    var data=snapshot();
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(data).then(function(){toast("Скопировано ✓");},function(){prompt("Скопируй вручную:",data);});
+    } else prompt("Скопируй вручную:",data);
+  });
+  $("importBtn").addEventListener("click",function(){
+    var raw=prompt("Вставь ранее скопированные данные:"); if(!raw)return;
+    try{var o=JSON.parse(raw);
+      if(o.engines)engines=o.engines; if(o.engineId)engineId=o.engineId;
+      if(o.links)links=o.links; if(o.history)history=o.history; if(o.settings)settings=o.settings;
+      save(K.engines,engines);save(K.engine,engineId);save(K.links,links);save(K.history,history);save(K.settings,settings);
+      applyTheme();renderEngines();renderLinks();renderHistory();renderSettings();toast("Импортировано ✓");
+    }catch(e){toast("Не получилось прочитать данные");}
+  });
+  $("resetBtn").addEventListener("click",function(){
+    if(!confirm("Удалить все закладки, историю и настройки?"))return;
+    Object.keys(K).forEach(function(k){localStorage.removeItem(K[k]);});
+    engines=DEFAULT_ENGINES.slice();engineId="duckduckgo";links=DEFAULT_LINKS.slice();history=[];settings={theme:"dark",accent:"#5b8cff"};
+    applyTheme();renderEngines();renderLinks();renderHistory();renderSettings();toast("Сброшено");
+  });
+
+  var toastT;
+  function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");
+    clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},1800);}
+
+  // ---------- init ----------
+  applyTheme(); tick(); setInterval(tick,1000);
+  renderEngines(); renderLinks(); renderHistory();
 })();
 </script>
 </body>
