@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <!-- Mobile / iPhone friendly -->
@@ -11,28 +11,39 @@
 <title>PyBrowser</title>
 <style>
   :root{
-    --bg:#0b0f1a; --panel:#151b2e; --panel2:#1d2540;
-    --text:#e7ecf5; --muted:#8a95b3; --accent:#5b8cff; --danger:#ff5b6e;
     --radius:16px;
+  }
+  html[data-theme="dark"]{
+    --bg:#0b0f1a; --bg2:#16203c; --panel:#151b2e; --panel2:#1d2540;
+    --text:#e7ecf5; --muted:#8a95b3; --accent:#5b8cff; --danger:#ff5b6e; --border:#2a3355;
+  }
+  html[data-theme="light"]{
+    --bg:#eef1f8; --bg2:#dbe3f7; --panel:#ffffff; --panel2:#eef2fb;
+    --text:#141a2b; --muted:#66708c; --accent:#3a6ff0; --danger:#e23b52; --border:#d3dbec;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
   body{
-    background:radial-gradient(120% 90% at 50% -10%, #16203c 0%, var(--bg) 55%);
+    background:radial-gradient(120% 90% at 50% -10%, var(--bg2) 0%, var(--bg) 55%);
     color:var(--text);
     font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     padding:max(env(safe-area-inset-top),18px) 16px calc(env(safe-area-inset-bottom) + 16px);
     display:flex;flex-direction:column;gap:18px;min-height:100%;
   }
-  header{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px}
-  .logo{font-size:30px;font-weight:800;letter-spacing:.5px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .logo{font-size:26px;font-weight:800;letter-spacing:.5px}
   .logo span{color:var(--accent)}
-  .tag{color:var(--muted);font-size:13px}
+  .tag{color:var(--muted);font-size:12px}
+  .theme-btn{
+    width:44px;height:44px;border-radius:50%;border:1px solid var(--border);
+    background:var(--panel);color:var(--text);font-size:20px;flex:0 0 auto;
+  }
 
   form.search{position:relative;display:flex;gap:8px}
   .search input{
     flex:1;min-width:0;padding:16px 16px;border-radius:var(--radius);
-    border:1px solid #2a3355;background:var(--panel);color:var(--text);
+    border:1px solid var(--border);background:var(--panel);color:var(--text);
     font-size:17px;outline:none;
   }
   .search input:focus{border-color:var(--accent)}
@@ -40,15 +51,21 @@
     padding:0 18px;border:0;border-radius:var(--radius);
     background:var(--accent);color:#fff;font-size:18px;font-weight:700;
   }
-  .engine-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+  .engine-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
   .chip{
-    padding:7px 14px;border-radius:999px;border:1px solid #2a3355;
-    background:var(--panel);color:var(--muted);font-size:13px;
+    padding:7px 14px;border-radius:999px;border:1px solid var(--border);
+    background:var(--panel);color:var(--muted);font-size:13px;position:relative;
   }
   .chip.active{background:var(--panel2);color:var(--text);border-color:var(--accent)}
+  .chip .x{margin-left:6px;color:var(--danger);font-weight:700;display:none}
+  body.editing-engines .chip.custom .x{display:inline}
+  .chip.addchip{color:var(--accent);font-weight:700}
 
   .section-title{display:flex;align-items:center;justify-content:space-between;
     color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.6px;margin:4px 2px}
+  .section-title .actions{display:flex;gap:12px;align-items:center}
+  .link-btn{background:none;border:0;color:var(--accent);font-size:13px;padding:2px 2px}
   .add{color:var(--accent);font-size:20px;font-weight:700;padding:2px 8px}
 
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -56,7 +73,7 @@
   .tile{
     position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
     padding:14px 6px;border-radius:var(--radius);background:var(--panel);
-    border:1px solid #222b48;text-decoration:none;color:var(--text);
+    border:1px solid var(--border);text-decoration:none;color:var(--text);
   }
   .tile:active{background:var(--panel2)}
   .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
@@ -68,15 +85,26 @@
     display:none}
   body.editing .tile .del{display:block}
 
+  .hist{display:flex;flex-direction:column;gap:2px}
+  .hist a{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;
+    text-decoration:none;color:var(--text);background:var(--panel);border:1px solid var(--border)}
+  .hist a:active{background:var(--panel2)}
+  .hist .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+  .hist .h-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+  .hist .h-url{color:var(--muted);font-size:12px;max-width:38%;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+
   .empty{color:var(--muted);text-align:center;font-size:14px;padding:14px}
-  footer{margin-top:auto;text-align:center;color:var(--muted);font-size:12px;opacity:.8}
-  .edit-toggle{background:none;border:0;color:var(--accent);font-size:13px}
+  footer{margin-top:auto;text-align:center;color:var(--muted);font-size:12px;opacity:.85}
 </style>
 </head>
 <body>
   <header>
-    <div class="logo">Py<span>Browser</span></div>
-    <div class="tag">Быстрый старт · поиск · закладки</div>
+    <div class="brand">
+      <div class="logo">Py<span>Browser</span></div>
+      <div class="tag">Поиск · закладки · история</div>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Сменить тему">🌙</button>
   </header>
 
   <form class="search" id="searchForm" autocomplete="off">
@@ -85,37 +113,43 @@
     <button type="submit" aria-label="Открыть">➜</button>
   </form>
 
-  <div class="engine-row" id="engines">
-    <button type="button" class="chip active" data-engine="duckduckgo">DuckDuckGo</button>
-    <button type="button" class="chip" data-engine="google">Google</button>
-    <button type="button" class="chip" data-engine="yandex">Яндекс</button>
-    <button type="button" class="chip" data-engine="youtube">YouTube</button>
-  </div>
+  <div class="engine-row" id="engines"><!-- engines injected here --></div>
 
   <div>
     <div class="section-title">
       <span>Закладки</span>
-      <span>
-        <button class="edit-toggle" id="editToggle" type="button">Изменить</button>
+      <span class="actions">
+        <button class="link-btn" id="editToggle" type="button">Изменить</button>
         <span class="add" id="addBtn" role="button" aria-label="Добавить">＋</span>
       </span>
     </div>
     <div class="grid" id="grid"></div>
-    <div class="empty" id="empty" hidden>Пусто. Нажми ＋ чтобы добавить сайт.</div>
+    <div class="empty" id="emptyLinks" hidden>Пусто. Нажми ＋ чтобы добавить сайт.</div>
   </div>
 
-  <footer>Открой меню Safari → «На экран «Домой»», чтобы пользоваться как приложением.</footer>
+  <div>
+    <div class="section-title">
+      <span>Недавнее</span>
+      <span class="actions">
+        <button class="link-btn" id="clearHist" type="button">Очистить</button>
+      </span>
+    </div>
+    <div class="hist" id="hist"></div>
+    <div class="empty" id="emptyHist" hidden>История пуста.</div>
+  </div>
+
+  <footer>Меню Safari → «На экран «Домой»», чтобы пользоваться как приложением.</footer>
 
 <script>
 (function(){
   "use strict";
 
-  var ENGINES = {
-    duckduckgo: "https://duckduckgo.com/?q=",
-    google:     "https://www.google.com/search?q=",
-    yandex:     "https://yandex.ru/search/?text=",
-    youtube:    "https://www.youtube.com/results?search_query="
-  };
+  var DEFAULT_ENGINES = [
+    {id:"duckduckgo", name:"DuckDuckGo", tpl:"https://duckduckgo.com/?q=%s", custom:false},
+    {id:"google",     name:"Google",     tpl:"https://www.google.com/search?q=%s", custom:false},
+    {id:"yandex",     name:"Яндекс",     tpl:"https://yandex.ru/search/?text=%s", custom:false},
+    {id:"youtube",    name:"YouTube",    tpl:"https://www.youtube.com/results?search_query=%s", custom:false}
+  ];
   var DEFAULT_LINKS = [
     {name:"Google",    url:"https://www.google.com"},
     {name:"YouTube",   url:"https://m.youtube.com"},
@@ -125,75 +159,149 @@
     {name:"Telegram",  url:"https://web.telegram.org"}
   ];
   var COLORS = ["#5b8cff","#ff7a59","#31c48d","#a855f7","#f59e0b","#ec4899","#14b8a6","#f43f5e"];
+  var MAX_HISTORY = 40;
 
-  var LS_LINKS = "pybrowser.links";
-  var LS_ENGINE = "pybrowser.engine";
+  var K = {
+    engines:"pybrowser.engines", engine:"pybrowser.engine",
+    links:"pybrowser.links", history:"pybrowser.history", theme:"pybrowser.theme"
+  };
+
+  function load(key, fb){
+    try{ var v = JSON.parse(localStorage.getItem(key)); return v == null ? fb : v; }
+    catch(e){ return fb; }
+  }
+  function save(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+  var engines = load(K.engines, DEFAULT_ENGINES);
+  var engineId = load(K.engine, "duckduckgo");
+  var links = load(K.links, DEFAULT_LINKS);
+  var history = load(K.history, []);
+  var theme = load(K.theme, "dark");
 
   var q = document.getElementById("q");
   var form = document.getElementById("searchForm");
-  var grid = document.getElementById("grid");
-  var empty = document.getElementById("empty");
   var engineRow = document.getElementById("engines");
+  var grid = document.getElementById("grid");
+  var emptyLinks = document.getElementById("emptyLinks");
+  var histEl = document.getElementById("hist");
+  var emptyHist = document.getElementById("emptyHist");
 
-  function load(key, fallback){
-    try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
-    catch(e){ return fallback; }
+  function currentEngine(){
+    return engines.filter(function(e){return e.id === engineId;})[0] || engines[0];
   }
-  function save(key, val){ try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} }
 
-  var engine = load(LS_ENGINE, "duckduckgo");
-  var links = load(LS_LINKS, DEFAULT_LINKS);
+  // ---- theme ----
+  function applyTheme(){
+    document.documentElement.setAttribute("data-theme", theme);
+    document.getElementById("themeBtn").textContent = theme === "dark" ? "🌙" : "☀️";
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if(meta) meta.setAttribute("content", theme === "dark" ? "#0b0f1a" : "#eef1f8");
+  }
+  document.getElementById("themeBtn").addEventListener("click", function(){
+    theme = theme === "dark" ? "light" : "dark";
+    save(K.theme, theme); applyTheme();
+  });
 
-  // ---- input parsing: URL vs search ----
+  // ---- input parsing ----
   function looksLikeUrl(t){
     t = t.trim();
     if(!t || /\s/.test(t)) return false;
     if(/^(https?:\/\/|file:\/\/|about:)/i.test(t)) return true;
     if(/^localhost(:|\/|$)/i.test(t)) return true;
-    return /^[^.]+(\.[^.\s]+)+/.test(t); // has a dot, no spaces
+    return /^[^.]+(\.[^.\s]+)+/.test(t);
   }
   function toUrl(t){
     t = t.trim();
     if(looksLikeUrl(t)) return /:\/\//.test(t) ? t : "http://" + t;
-    return ENGINES[engine] + encodeURIComponent(t);
+    return currentEngine().tpl.replace("%s", encodeURIComponent(t));
   }
-  function go(url){ window.location.href = url; }
+  function pushHistory(title, url){
+    history = history.filter(function(h){ return h.url !== url; });
+    history.unshift({title:title, url:url, t:Date.now()});
+    if(history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+    save(K.history, history);
+  }
+  function go(rawInput){
+    var url = toUrl(rawInput);
+    var isSearch = !looksLikeUrl(rawInput.trim());
+    pushHistory(isSearch ? ("🔎 " + rawInput.trim()) : url.replace(/^https?:\/\//,""), url);
+    window.location.href = url;
+  }
 
   form.addEventListener("submit", function(e){
     e.preventDefault();
     var t = q.value.trim();
-    if(t) go(toUrl(t));
+    if(t) go(t);
   });
 
-  // ---- engine chips ----
-  function renderEngine(){
-    [].forEach.call(engineRow.children, function(c){
-      c.classList.toggle("active", c.dataset.engine === engine);
+  // ---- engines ----
+  function renderEngines(){
+    engineRow.innerHTML = "";
+    engines.forEach(function(e){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip" + (e.id === engineId ? " active" : "") + (e.custom ? " custom" : "");
+      b.dataset.id = e.id;
+      b.innerHTML = e.name + (e.custom ? ' <span class="x" data-del="'+e.id+'">✕</span>' : "");
+      engineRow.appendChild(b);
     });
+    var add = document.createElement("button");
+    add.type = "button"; add.className = "chip addchip"; add.id = "addEngine";
+    add.textContent = "＋ поисковик";
+    engineRow.appendChild(add);
   }
   engineRow.addEventListener("click", function(e){
-    var b = e.target.closest(".chip"); if(!b) return;
-    engine = b.dataset.engine; save(LS_ENGINE, engine); renderEngine();
-    q.focus();
+    var del = e.target.closest("[data-del]");
+    if(del){
+      e.stopPropagation();
+      var id = del.getAttribute("data-del");
+      engines = engines.filter(function(x){ return x.id !== id; });
+      if(engineId === id) engineId = engines[0].id;
+      save(K.engines, engines); save(K.engine, engineId); renderEngines();
+      return;
+    }
+    if(e.target.id === "addEngine"){
+      addEngine(); return;
+    }
+    var chip = e.target.closest(".chip");
+    if(chip && chip.dataset.id){
+      engineId = chip.dataset.id; save(K.engine, engineId); renderEngines(); q.focus();
+    }
   });
+  function addEngine(){
+    var name = prompt("Название поисковика (например, Bing):");
+    if(!name) return;
+    var tpl = prompt('Адрес поиска, где %s — это запрос.\nНапример: https://www.bing.com/search?q=%s');
+    if(!tpl || tpl.indexOf("%s") === -1){
+      alert("Нужен адрес со знаком %s вместо запроса.");
+      return;
+    }
+    var id = "c" + Date.now();
+    engines.push({id:id, name:name.trim(), tpl:tpl.trim(), custom:true});
+    engineId = id;
+    save(K.engines, engines); save(K.engine, engineId); renderEngines();
+  }
 
-  // ---- bookmarks grid ----
-  function faviconColor(i){ return COLORS[i % COLORS.length]; }
+  // ---- bookmarks ----
+  function color(i){ return COLORS[i % COLORS.length]; }
   function letter(name, url){
     var s = (name || url || "?").replace(/^https?:\/\//,"").trim();
     return (s[0] || "?").toUpperCase();
   }
   function renderLinks(){
     grid.innerHTML = "";
-    empty.hidden = links.length > 0;
+    emptyLinks.hidden = links.length > 0;
     links.forEach(function(link, i){
       var a = document.createElement("a");
-      a.className = "tile";
-      a.href = link.url;
+      a.className = "tile"; a.href = link.url;
       a.innerHTML =
         '<span class="del" data-i="'+i+'">×</span>' +
-        '<span class="ico" style="background:'+faviconColor(i)+'">'+letter(link.name, link.url)+'</span>' +
+        '<span class="ico" style="background:'+color(i)+'">'+letter(link.name, link.url)+'</span>' +
         '<span class="name">'+ (link.name || link.url) +'</span>';
+      a.addEventListener("click", function(){
+        if(!document.body.classList.contains("editing"))
+          pushHistory(link.name || link.url, link.url);
+      });
       grid.appendChild(a);
     });
   }
@@ -202,27 +310,46 @@
     if(del){
       e.preventDefault();
       links.splice(parseInt(del.dataset.i,10), 1);
-      save(LS_LINKS, links); renderLinks();
+      save(K.links, links); renderLinks();
     }
   });
-
-  // ---- add / edit ----
   document.getElementById("addBtn").addEventListener("click", function(){
     var url = prompt("Адрес сайта (например, apple.com):");
     if(!url) return;
     url = url.trim();
     if(!/:\/\//.test(url)) url = "https://" + url.replace(/^\/+/,"");
     var name = prompt("Название:", url.replace(/^https?:\/\//,"").replace(/\/.*$/,""));
-    links.push({name: (name||"").trim(), url: url});
-    save(LS_LINKS, links); renderLinks();
+    links.push({name:(name||"").trim(), url:url});
+    save(K.links, links); renderLinks();
   });
   document.getElementById("editToggle").addEventListener("click", function(){
     document.body.classList.toggle("editing");
     this.textContent = document.body.classList.contains("editing") ? "Готово" : "Изменить";
   });
 
-  renderEngine();
+  // ---- history ----
+  function renderHistory(){
+    histEl.innerHTML = "";
+    emptyHist.hidden = history.length > 0;
+    history.slice(0, 12).forEach(function(h){
+      var a = document.createElement("a");
+      a.href = h.url;
+      a.innerHTML =
+        '<span class="dot"></span>' +
+        '<span class="h-title">'+ (h.title || h.url) +'</span>' +
+        '<span class="h-url">'+ h.url.replace(/^https?:\/\//,"").replace(/\/.*$/,"") +'</span>';
+      histEl.appendChild(a);
+    });
+  }
+  document.getElementById("clearHist").addEventListener("click", function(){
+    history = []; save(K.history, history); renderHistory();
+  });
+
+  // ---- init ----
+  applyTheme();
+  renderEngines();
   renderLinks();
+  renderHistory();
 })();
 </script>
 </body>
