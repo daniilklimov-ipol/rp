@@ -3,6 +3,21 @@
 A minimal but genuinely functional tabbed web browser written in Python on top
 of **PyQt5** and the **QtWebEngine** (Chromium) rendering engine.
 
+## Download the Windows .exe
+
+You don't need Python to run it — grab a ready-made `PyBrowser.exe`:
+
+1. Open the repo's **Actions** tab → the latest **"Build Windows EXE"** run.
+2. Download the **`PyBrowser-Windows-exe`** artifact (a zip containing
+   `PyBrowser.exe`).
+3. Unzip and double-click **`PyBrowser.exe`** on any Windows 10/11 PC.
+
+> The `.exe` is a **Windows desktop program** — it runs on a Windows computer,
+> not on a phone. For iPhone/Android, use the mobile web version in `docs/`.
+
+Tagged releases (e.g. pushing `v1.0.0`) also attach `PyBrowser.exe` to a GitHub
+**Release** for a one-click download.
+
 ## Features
 
 - Full Chromium rendering via QtWebEngine — real, modern web pages.
@@ -32,6 +47,18 @@ pip install -r requirements.txt
 python main.py                 # open the home page
 python main.py https://python.org example.com   # open URLs in tabs
 ```
+
+## Building the .exe yourself (Windows)
+
+On a Windows PC with Python installed, just run:
+
+```bat
+build.bat
+```
+
+This installs the dependencies and PyInstaller, then produces
+`dist\PyBrowser.exe`. Under the hood it uses `pybrowser.spec`, which bundles the
+entire QtWebEngine (Chromium) runtime into a single executable.
 
 ## Project layout
 
