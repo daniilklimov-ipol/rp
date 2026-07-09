@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Watch-Completion Predictor",
+  "version": "0.1.0",
+  "description": "Overlays a predicted watch-completion percentage and a green-to-red border on YouTube video thumbnails, powered by a local desktop app.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "http://127.0.0.1:*/*",
+    "http://localhost:*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "YouTube Watch-Completion Predictor"
+  }
+}

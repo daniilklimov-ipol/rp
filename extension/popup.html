@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>YouTube Watch-Completion Predictor</title>
+    <style>
+      body {
+        width: 280px;
+        font: 13px/1.4 "Roboto", Arial, sans-serif;
+        padding: 12px;
+        color: #222;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 10px;
+      }
+      label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      input[type="number"] {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 5px 6px;
+        margin-bottom: 10px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      button {
+        width: 100%;
+        padding: 7px;
+        cursor: pointer;
+      }
+      #status {
+        margin-top: 10px;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      #status.ok {
+        background: #e3f7e8;
+        color: #14672b;
+      }
+      #status.bad {
+        background: #fce8e6;
+        color: #8f2b23;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Watch-Completion Predictor</h1>
+
+    <label for="port">Desktop app port</label>
+    <input type="number" id="port" min="1" max="65535" />
+
+    <div class="row">
+      <label for="enabled" style="margin-bottom: 0">Show overlays</label>
+      <input type="checkbox" id="enabled" />
+    </div>
+
+    <button id="save">Save &amp; test connection</button>
+    <div id="status">Checking…</div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
