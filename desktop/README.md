@@ -112,7 +112,7 @@ push to this branch and uploads the `.exe` as a build artifact.
 ## Running the tests
 
 ```bash
-pip install -r requirements.txt pytest
+pip install -r requirements.txt pytest httpx
 pytest
 ```
 

@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         working-directory: desktop
         run: |
-          pip install pytest
+          pip install pytest httpx
           pytest -q
 
       - name: Build YouTubeWatchPredictor.exe
