@@ -20,6 +20,10 @@
     "ytd-compact-video-renderer",
     "ytd-grid-video-renderer",
     "ytd-playlist-video-renderer",
+    // Shorts, as they appear embedded in feeds/shelves (not the /shorts player itself).
+    "ytd-reel-item-renderer",
+    "ytm-shorts-lockup-view-model",
+    "ytm-shorts-lockup-view-model-v2",
   ].join(", ");
 
   const FETCH_DEBOUNCE_MS = 400;
@@ -52,10 +56,15 @@
   let debounceTimer = null;
 
   function extractVideoId(renderer) {
-    const link = renderer.querySelector('a#thumbnail[href*="/watch?v="], a#video-title[href*="/watch?v="]');
+    const link = renderer.querySelector(
+      'a#thumbnail[href*="/watch?v="], a#video-title[href*="/watch?v="], a[href^="/shorts/"]'
+    );
     if (!link) return null;
     try {
       const url = new URL(link.getAttribute("href"), location.href);
+      if (url.pathname.startsWith("/shorts/")) {
+        return url.pathname.split("/")[2] || null;
+      }
       return url.searchParams.get("v");
     } catch {
       return null;

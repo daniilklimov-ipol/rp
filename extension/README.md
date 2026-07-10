@@ -54,18 +54,20 @@ place.
 ## Files
 
 ```
-manifest.json     # MV3 manifest
-background.js     # service worker: fetch() to the desktop app + caching
-content.js        # thumbnail scanning/painting + watch-page progress tracking
-overlay.css        # badge + border styles
-popup.html/js       # port config, overlay on/off toggle, connection test
+manifest.json          # MV3 manifest
+background.js          # service worker: fetch() to the desktop app + caching
+content.js             # thumbnail scanning/painting + watch-page progress tracking
+overlay.css            # badge + border styles
+popup.html/js          # port config, overlay on/off toggle, connection test
+icons/                 # toolbar icons (16/48/128px) + generate_icons.py to regenerate them
 ```
 
 ## Known limitations
 
-- Shorts (`ytd-reel-item-renderer`) aren't overlaid yet — their thumbnail
-  markup differs from regular video renderers. Extending `RENDERER_SELECTOR`
-  and `extractVideoId()` in `content.js` to handle `/shorts/<id>` links is
-  the way to add it.
+- Shorts thumbnails *in feeds/shelves* (home page, sidebar) are overlaid,
+  but the `/shorts/<id>` full-screen swipe player is not instrumented for
+  watch tracking — only regular `/watch` pages report real progress back to
+  `POST /watch`. YouTube's Shorts player uses its own vertical-scroll,
+  multi-`<video>` DOM that would need separate handling.
 - If the desktop app isn't running, badges show `?` (no API key configured)
   or `err` (server unreachable) instead of a percentage.
