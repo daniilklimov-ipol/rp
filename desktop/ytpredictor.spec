@@ -11,7 +11,7 @@ from PyInstaller.utils.hooks import collect_all
 
 datas, binaries, hiddenimports = [], [], []
 
-for pkg in ("sklearn", "uvicorn", "vaderSentiment", "fastapi", "pydantic"):
+for pkg in ("sklearn", "scipy", "numpy", "uvicorn", "vaderSentiment", "fastapi", "pydantic"):
     d, b, h = collect_all(pkg)
     datas += d
     binaries += b
@@ -29,6 +29,18 @@ hiddenimports += [
     "uvicorn.protocols.websockets.auto",
     "uvicorn.lifespan",
     "uvicorn.lifespan.on",
+    # scipy ships a handful of Cython "shared utility" extension modules that
+    # are only ever loaded implicitly (via cimport, not a Python-level
+    # `import`), so PyInstaller's static source scan misses them even with
+    # collect_all("scipy") above. Without these, a frozen exe crashes on
+    # startup with "ModuleNotFoundError: No module named 'scipy...cyutility'".
+    "scipy._lib.cyutility",
+    "scipy._lib._cyutility",
+    "scipy._cyutility",
+    "scipy._lib._ccallback_c",
+    "scipy._lib._ccallback",
+    "scipy.special.cython_special",
+    "scipy.special._cdflib",
 ]
 
 block_cipher = None

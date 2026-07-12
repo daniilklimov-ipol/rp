@@ -29,7 +29,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller==6.11.1
+          pip install --upgrade pyinstaller==6.11.1 "pyinstaller-hooks-contrib>=2024.10"
 
       - name: Run tests
         working-directory: desktop
@@ -44,6 +44,18 @@ jobs:
       - name: Show output
         working-directory: desktop
         run: dir dist
+
+      - name: Smoke-test the frozen exe
+        working-directory: desktop
+        timeout-minutes: 3
+        run: |
+          .\dist\YouTubeWatchPredictor.exe --selfcheck
+          $code = $LASTEXITCODE
+          if ($code -ne 0) {
+            if (Test-Path selfcheck_error.log) { Get-Content selfcheck_error.log }
+            Write-Error "Frozen exe failed --selfcheck (exit $code) - packaging is broken, see log above"
+            exit 1
+          }
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
