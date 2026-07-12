@@ -49,13 +49,18 @@ jobs:
         working-directory: desktop
         timeout-minutes: 3
         run: |
-          .\dist\YouTubeWatchPredictor.exe --selfcheck
-          $code = $LASTEXITCODE
+          # This is a windowed (console=False) exe, so a plain `.\exe.exe` call
+          # launches it detached and returns immediately without waiting -
+          # $LASTEXITCODE would be stale/empty. Start-Process -Wait -PassThru
+          # actually blocks until it exits and gives a real exit code.
+          $proc = Start-Process -FilePath ".\dist\YouTubeWatchPredictor.exe" -ArgumentList "--selfcheck" -Wait -PassThru
+          $code = $proc.ExitCode
           if ($code -ne 0) {
             if (Test-Path selfcheck_error.log) { Get-Content selfcheck_error.log }
             Write-Error "Frozen exe failed --selfcheck (exit $code) - packaging is broken, see log above"
             exit 1
           }
+          Write-Host "selfcheck passed (exit $code)"
 
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
