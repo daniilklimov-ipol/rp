@@ -3,6 +3,7 @@ name: Build Windows EXE
 on:
   push:
     branches: [ "claude/browser-implementation-cwzulo" ]
+    tags: [ "v*" ]
     paths:
       - "browser/**"
       - "main.py"
